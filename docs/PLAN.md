@@ -71,16 +71,15 @@ Tipos comprobados en el cuadro de retenciones de la AEAT de 2026 (el vigente des
 - [ ] Publicar la lógica como paquete npm (y portarla a Python como librería/API: FastAPI).
 - [x] JSDoc con `checkJs`: `src/` pasa `npm run check` con TypeScript 7 (estricto por defecto). Queda decidir si se pasa a TypeScript.
 - [ ] CI con GitHub Actions: tests en cada push.
-- [ ] Web pública como herramienta gratuita (idruiz.com). Hecho: estilo de la marca, sin recursos externos, sin datos personales por defecto. **Decidido el 24 de noviembre:** página `idruiz.com/herramientas/cuanto-facturo/` en `idruiz-web`, que usa `src/fiscal/` como dependencia local; botón al servicio «Presupuestador para tu web»; eventos de Umami sin datos personales ni importes; se instala después de la migración a Cloudflare (`web/instalar-cuanto-facturo.md` del centro de control, parte B).
+- [x] **Web pública** (24 de noviembre de 2026): https://idruiz.com/herramientas/cuanto-facturo/, página de `idruiz-web` que usa este paquete como dependencia local (`cuanto-facturo/fiscal`, `/format` y `/textos`). La primera cuenta va en el HTML al compilar; en el navegador, la misma función `resultado()`. Botón al servicio «Presupuestador para tu web» y un evento de Umami solo con el modo. `pnpm publicar` de la web se para si este repositorio no está en `main`, limpio, subido y con los tests en verde.
 - [ ] Otros países con sistema parecido (Italia: ritenuta d'acconto).
 
 ---
 
 ## Siguiente paso recomendado
 
-Actualizado el 24 de noviembre de 2026, con la v0.4 hecha:
+Actualizado el 24 de noviembre de 2026, con la calculadora ya en idruiz.com:
 
-1. La página en `idruiz.com/herramientas/cuanto-facturo/` (guía de instalación del centro de control, parte B). La migración a Cloudflare ya está terminada.
-2. El artículo del blog, ya en borrador en Ghost: lo revisa y lo publica David, después de la página.
-3. Reglas por año (Fase 6): comprobar las de 2027 la primera semana de enero.
-4. Detección por epígrafe IAE (Fase 2).
+1. El artículo del blog, en borrador en Ghost: lo publica David. Después, las explicaciones de la página enlazan al artículo.
+2. Reglas por año (Fase 6): comprobar las de 2027 la primera semana de enero.
+3. Detección por epígrafe IAE (Fase 2).
