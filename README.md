@@ -41,7 +41,8 @@ hace cada uno con su programa o su asesoría. Así no es un sistema informático
 le afecta Verifactu (RD 1007/2023). Detalle en [`docs/PLAN.md`](docs/PLAN.md).
 
 Tampoco calcula el beneficio real (gastos, cuota de autónomos, IRPF final), ni los casos de la
-fase 4 del plan: módulos (1 %), agricultura y ganadería (2 %), Canarias, Ceuta y Melilla.
+fase 4 del plan: módulos (1 %), agricultura y ganadería (2 %), Canarias, Ceuta y Melilla. La página
+lo dice en «Lo que esta cuenta no incluye».
 
 **No guarda nada:** ni cookies ni `localStorage`. Lo que se escribe no sale del navegador.
 
@@ -63,12 +64,17 @@ npm run check    # tipos de src/ con TypeScript (necesita tsc instalado; no es d
 ## Usarla desde otra web
 
 `idruiz-web` la usa para `idruiz.com/herramientas/cuanto-facturo/`, como dependencia local
-(`"cuanto-facturo": "link:../cuanto-facturo"`). Dos puertas de entrada (`exports` de `package.json`):
+(`"cuanto-facturo": "link:../cuanto-facturo"`). Tres puertas de entrada (`exports` de `package.json`):
 
 ```js
 import { CLIENTES, facturaParaNeto, facturaDesdePago } from "cuanto-facturo/fiscal";
 import { euros, leerImporte } from "cuanto-facturo/format";
+import { avisoRetencion, detalle, noIncluye } from "cuanto-facturo/textos";
 ```
+
+Los textos que dependen de las cuentas (el aviso, «Ver el detalle», la línea de los céntimos, las
+opciones del alta y del IVA, lo que no incluye) están en `textos.js`, con tests: así esta página y la
+de la web dicen lo mismo.
 
 TypeScript lee los tipos del JSDoc; no hace falta un `.d.ts`. La web publica lo que haya en esta
 carpeta al compilar: antes de publicarla, esta carpeta tiene que estar en `main`, sin cambios y con
@@ -82,6 +88,7 @@ favicon.svg                 Icono de la marca (copia del de idruiz-web)
 src/
   main.js                   Lee las preguntas y rellena las tarjetas (solo textos; las cuentas, en fiscal/)
   format.js                 Euros, porcentajes, fechas y leerImporte («1.000,50» → 1000,5)
+  textos.js                 Los textos que dependen de las cuentas y de las respuestas
   styles.css                Estilos de la marca IDRuiz
   fonts/                    Montserrat variable (juego latino) y su licencia OFL
   fiscal/
@@ -91,6 +98,7 @@ src/
 tests/
   calculo.test.js           Casos comprobados a mano, el cálculo al revés y la pregunta del alta
   format.test.js            Importes escritos a la española
+  textos.test.js            Los textos del diseño, con «Ver el detalle» en IRPF
 scripts/
   servir.py                 Servidor local de npm run dev, sin copias del navegador
 legacy/

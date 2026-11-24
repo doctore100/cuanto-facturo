@@ -1,12 +1,13 @@
 {
   "name": "cuanto-facturo",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Calculadora para autónomos de España: quiero ganar X, ¿qué precio pongo? O al revés: ¿cuánto me queda?",
   "type": "module",
   "private": true,
   "exports": {
     "./fiscal": "./src/fiscal/index.js",
-    "./format": "./src/format.js"
+    "./format": "./src/format.js",
+    "./textos": "./src/textos.js"
   },
   "scripts": {
     "test": "node --test tests/*.test.js",
