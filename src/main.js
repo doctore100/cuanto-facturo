@@ -8,11 +8,10 @@
 //   abierto no se cierra al escribir (el prototipo las rehacía enteras con cada tecla).
 // - Todo va con textContent: nada de lo que se escribe acaba como HTML.
 // - No guarda nada en el navegador (la v0.3 guardaba los datos en localStorage).
-import { CLIENTES, SECCIONES_IAE, facturaParaNeto, facturaDesdeBase, facturaDesdePago, retencionSinFecha } from './fiscal/index.js';
-import { euros, hoyISO, leerImporte } from './format.js';
-import { MODOS, textosAlta, opcionesIva, avisoRetencion, detalle, textoRedondeo, noIncluye } from './textos.js';
+import { CLIENTES, SECCIONES_IAE } from './fiscal/index.js';
+import { hoyISO, leerImporte } from './format.js';
+import { MODOS, textosAlta, opcionesIva, noIncluye, resultado } from './textos.js';
 
-/** @typedef {import('./textos.js').Resultado} Resultado */
 /** @typedef {import('./textos.js').Modo} Modo */
 
 /** @param {string} id */
@@ -67,9 +66,9 @@ const tarjetas = CLIENTES.map((cliente) => {
 /**
  * Una línea de la tarjeta: texto, importe y si es lo tuyo (en turquesa).
  * @param {HTMLElement} donde
- * @param {[string, string, boolean?]} linea
+ * @param {import('./textos.js').Linea} linea
  */
-function poner(donde, [texto, importe, tuyo = false]) {
+function poner(donde, { texto, importe, tuyo }) {
   /** @type {HTMLElement} */ (donde.children[0]).textContent = texto;
   /** @type {HTMLElement} */ (donde.children[1]).textContent = importe;
   donde.classList.toggle('tuyo', tuyo);
@@ -83,44 +82,31 @@ function pintar() {
   $('ayudaImporte').textContent = MODOS[modo].ayuda;
 
   const leido = leerImporte(campoImporte.value);
-  const importe = leido ?? 0;
   // Si lo escrito no es un importe se calcula con 0 y el campo lo dice a quien usa un lector de pantalla.
   campoImporte.toggleAttribute('aria-invalid', leido === null && campoImporte.value.trim() !== '');
 
   const servicio = elegido('actividad') === 'profesional';
   const reciente = elegido('alta') === 'reciente';
-  const prefiere15 = casilla15.checked;
   $('preguntaAlta').hidden = !servicio; // a un negocio no se le retiene
   $('prefiero15').hidden = !(servicio && reciente);
-  $('aviso').textContent = avisoRetencion({ servicio, reciente, prefiere15 });
 
-  const tipoRetencion = retencionSinFecha({
-    seccion: servicio ? 'profesional' : 'empresarial',
-    altaReciente: reciente,
-    preferir15: prefiere15,
+  const r = resultado({
+    modo,
+    importe: leido ?? 0,
+    servicio,
+    reciente,
+    prefiere15: casilla15.checked,
+    tipoIva: Number(desplegableIva.value),
   });
-  const tipoIva = Number(desplegableIva.value);
-
-  for (const t of tarjetas) {
-    const c = { tipoIva, tipoRetencion, llevaIva: t.cliente.llevaIva, llevaRetencion: t.cliente.llevaRetencion };
-    /** @type {Resultado} */
-    const f = modo === 'precio' ? facturaDesdeBase({ base: importe, ...c })
-      : modo === 'pago' ? facturaDesdePago({ pago: importe, ...c })
-      : facturaParaNeto({ neto: importe, ...c });
-
-    const precio = /** @type {[string, string]} */ (['Pon de precio (sin IVA)', euros(f.base)]);
-    const pago = /** @type {[string, string]} */ (['Tu cliente te pagará', euros(f.total)]);
-    const paraTi = /** @type {[string, string, boolean]} */ (['Para ti', euros(f.teQueda), true]);
-    const hacienda = /** @type {[string, string]} */ (['Guarda para Hacienda', f.iva ? euros(f.iva) : 'Nada']);
-    // Quiero ganar: lo grande es el precio. Al revés: lo grande es lo que te queda.
-    const [grande, ...filas] = modo === 'ganar' ? [precio, pago, paraTi, hacienda] : [paraTi, precio, pago, hacienda];
-    poner(t.grande, grande);
-    filas.forEach((linea, i) => poner(t.filas[i], linea));
-
-    t.redondeo.textContent = textoRedondeo(modo, importe, f);
-    t.redondeo.hidden = !t.redondeo.textContent;
-    t.detalle.textContent = detalle(t.cliente.id, f);
-  }
+  $('aviso').textContent = r.aviso;
+  r.tarjetas.forEach((datos, i) => {
+    const t = tarjetas[i];
+    poner(t.grande, datos.grande);
+    datos.filas.forEach((linea, n) => poner(t.filas[n], linea));
+    t.redondeo.textContent = datos.redondeo;
+    t.redondeo.hidden = !datos.redondeo;
+    t.detalle.textContent = datos.detalle;
+  });
 }
 
 formulario.addEventListener('input', pintar);

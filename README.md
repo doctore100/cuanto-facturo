@@ -69,8 +69,12 @@ npm run check    # tipos de src/ con TypeScript (necesita tsc instalado; no es d
 ```js
 import { CLIENTES, facturaParaNeto, facturaDesdePago } from "cuanto-facturo/fiscal";
 import { euros, leerImporte } from "cuanto-facturo/format";
-import { avisoRetencion, detalle, noIncluye } from "cuanto-facturo/textos";
+import { resultado, RESPUESTAS_INICIALES, noIncluye } from "cuanto-facturo/textos";
 ```
+
+`resultado(respuestas)` devuelve todo lo que enseña la página: el aviso y las cuatro tarjetas, ya
+con sus textos e importes. La web la usa al compilar (las cifras de la primera cuenta van en el HTML)
+y en el navegador.
 
 Los textos que dependen de las cuentas (el aviso, «Ver el detalle», la línea de los céntimos, las
 opciones del alta y del IVA, lo que no incluye) están en `textos.js`, con tests: así esta página y la

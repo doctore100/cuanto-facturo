@@ -1,7 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { facturaParaNeto, facturaDesdePago } from '../src/fiscal/calculo.js';
-import { MODOS, textosAlta, opcionesIva, avisoRetencion, detalle, textoRedondeo, noIncluye } from '../src/textos.js';
+import {
+  MODOS, textosAlta, opcionesIva, avisoRetencion, detalle, textoRedondeo, noIncluye, resultado, RESPUESTAS_INICIALES,
+} from '../src/textos.js';
 
 // Los textos del diseño aprobado (negocio/cuanto-facturo-diseno.md del centro de control), con la
 // decisión del 24 de noviembre de 2026: «Ver el detalle» habla de IRPF.
@@ -78,4 +80,34 @@ test('lo que esta cuenta no incluye: los casos que no cubre y las normas de Espa
   assert.match(t, /agricultor o ganadero \(IRPF del 2 %\)/);
   assert.match(t, /Canarias, Ceuta o Melilla, donde no hay IVA/);
   assert.match(t, /Es orientativa, con las normas de España de 2026\.$/);
+});
+
+test('resultado: al abrir la página, ganar 100 € con el 15 %', () => {
+  const { aviso, tarjetas } = resultado(RESPUESTAS_INICIALES);
+  assert.equal(aviso, 'Las empresas de España te quitan un 15 % de IRPF para Hacienda.');
+  assert.deepEqual(tarjetas.map((t) => t.titulo),
+    ['Empresa o autónomo de España', 'Persona de España', 'Empresa de otro país de Europa', 'Empresa de fuera de Europa']);
+  const [empresa] = tarjetas;
+  assert.deepEqual(empresa.grande, { texto: 'Pon de precio (sin IVA)', importe: '117,65 €', tuyo: false });
+  assert.deepEqual(empresa.filas, [
+    { texto: 'Tu cliente te pagará', importe: '124,71 €', tuyo: false },
+    { texto: 'Para ti', importe: '100,00 €', tuyo: true },
+    { texto: 'Guarda para Hacienda', importe: '24,71 €', tuyo: false },
+  ]);
+  assert.equal(tarjetas[3].filas[2].importe, 'Nada');
+});
+
+test('resultado: al revés, lo grande es lo tuyo; y la línea de los céntimos', () => {
+  const { tarjetas } = resultado({ ...RESPUESTAS_INICIALES, modo: 'pago', importe: 122.58, reciente: true });
+  assert.deepEqual(tarjetas[0].grande, { texto: 'Para ti', importe: '100,00 €', tuyo: true });
+  assert.equal(tarjetas[0].redondeo, '');
+  assert.equal(tarjetas[1].grande.importe, '101,31 €');
+  assert.equal(tarjetas[1].redondeo, 'Por los céntimos, 122,58 € no sale exacto: lo más cercano es 122,59 €.');
+});
+
+test('resultado: con un negocio no hay retención', () => {
+  const { aviso, tarjetas } = resultado({ ...RESPUESTAS_INICIALES, servicio: false });
+  assert.match(aviso, /^Con un negocio/);
+  assert.equal(tarjetas[0].filas[0].importe, '121,00 €');
+  assert.match(tarjetas[0].detalle, /Con un negocio, no se resta IRPF\.$/);
 });

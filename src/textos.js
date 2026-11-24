@@ -8,7 +8,10 @@
  * mismo (guía de instalación del centro de control, paso B0; 24 de noviembre de 2026). Los
  * porcentajes y los años salen de las reglas, no se escriben.
  */
-import { RETENCION, IVA, EJERCICIO, redondear, opcionesAlta } from './fiscal/index.js';
+import {
+  RETENCION, IVA, EJERCICIO, CLIENTES, redondear, opcionesAlta, retencionSinFecha,
+  facturaParaNeto, facturaDesdeBase, facturaDesdePago,
+} from './fiscal/index.js';
 import { euros, porcentaje } from './format.js';
 
 /** @typedef {'ganar' | 'precio' | 'pago'} Modo */
@@ -116,4 +119,72 @@ export function noIncluye() {
     'No vale tal cual si estás en módulos con transporte o mudanzas (IRPF del 1 %), si eres agricultor ' +
     'o ganadero (IRPF del 2 %) o si trabajas en Canarias, Ceuta o Melilla, donde no hay IVA. ' +
     `Es orientativa, con las normas de España de ${EJERCICIO}.`;
+}
+
+/**
+ * @typedef {Object} Respuestas   Lo que ha contestado la persona
+ * @property {Modo} modo
+ * @property {number} importe        Ya leído (leerImporte); 0 si no es un importe
+ * @property {boolean} servicio      «Doy un servicio» (actividad profesional)
+ * @property {boolean} reciente      Alta en los tres últimos años
+ * @property {boolean} prefiere15    La casilla «Prefiero que me quiten el 15 %»
+ * @property {number} tipoIva
+ */
+
+/** @typedef {{ texto: string, importe: string, tuyo: boolean }} Linea   Una línea de la tarjeta */
+
+/**
+ * @typedef {Object} Tarjeta
+ * @property {string} cliente   El id de CLIENTES
+ * @property {string} titulo
+ * @property {Linea} grande     La cifra grande: el precio al querer ganar X; lo tuyo al revés
+ * @property {Linea[]} filas    Las otras tres
+ * @property {string} redondeo  La línea de los céntimos, o ''
+ * @property {string} detalle   «Ver el detalle»
+ */
+
+/** Las respuestas con las que se abre la página: ganar 100 €, con un servicio y un alta antigua. */
+export const RESPUESTAS_INICIALES = /** @type {Respuestas} */ ({
+  modo: 'ganar', importe: 100, servicio: true, reciente: false, prefiere15: false, tipoIva: IVA[0].tipo,
+});
+
+/**
+ * Todo lo que enseña la página para unas respuestas: el aviso y las cuatro tarjetas. La usan la
+ * página de este proyecto, la de idruiz.com al compilar (para que las cifras estén en el HTML) y la
+ * de idruiz.com en el navegador.
+ * @param {Respuestas} r
+ * @returns {{ aviso: string, tarjetas: Tarjeta[] }}
+ */
+export function resultado(r) {
+  const tipoRetencion = retencionSinFecha({
+    seccion: r.servicio ? 'profesional' : 'empresarial',
+    altaReciente: r.reciente,
+    preferir15: r.prefiere15,
+  });
+  /** @type {(texto: string, importe: string, tuyo?: boolean) => Linea} */
+  const linea = (texto, importe, tuyo = false) => ({ texto, importe, tuyo });
+  return {
+    aviso: avisoRetencion(r),
+    tarjetas: CLIENTES.map((cliente) => {
+      const c = { tipoIva: r.tipoIva, tipoRetencion, llevaIva: cliente.llevaIva, llevaRetencion: cliente.llevaRetencion };
+      /** @type {Resultado} */
+      const f = r.modo === 'precio' ? facturaDesdeBase({ base: r.importe, ...c })
+        : r.modo === 'pago' ? facturaDesdePago({ pago: r.importe, ...c })
+        : facturaParaNeto({ neto: r.importe, ...c });
+      const precio = linea('Pon de precio (sin IVA)', euros(f.base));
+      const pago = linea('Tu cliente te pagará', euros(f.total));
+      const paraTi = linea('Para ti', euros(f.teQueda), true);
+      const hacienda = linea('Guarda para Hacienda', f.iva ? euros(f.iva) : 'Nada');
+      // Quiero ganar: lo grande es el precio. Al revés: lo grande es lo que te queda.
+      const [grande, ...filas] = r.modo === 'ganar' ? [precio, pago, paraTi, hacienda] : [paraTi, precio, pago, hacienda];
+      return {
+        cliente: cliente.id,
+        titulo: cliente.titulo,
+        grande,
+        filas,
+        redondeo: textoRedondeo(r.modo, r.importe, f),
+        detalle: detalle(cliente.id, f),
+      };
+    }),
+  };
 }
