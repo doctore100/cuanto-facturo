@@ -1,9 +1,19 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { facturaParaNeto, facturaDesdePago } from '../src/fiscal/calculo.js';
-import {
-  MODOS, textosAlta, opcionesIva, avisoRetencion, detalle, textoRedondeo, noIncluye, resultado, RESPUESTAS_INICIALES,
-} from '../src/textos.js';
+import * as textos from '../src/textos.js';
+
+// Las cifras van unidas a su signo con un espacio que no se rompe (format.js, ESPACIO). Aquí se
+// comparan con espacios normales, que se leen mejor; el último test comprueba que están.
+const plano = (v) => JSON.parse(JSON.stringify(v).replace(/\u00a0/g, ' '));
+const { MODOS, RESPUESTAS_INICIALES } = textos;
+const textosAlta = (...a) => plano(textos.textosAlta(...a));
+const opcionesIva = () => plano(textos.opcionesIva());
+const avisoRetencion = (...a) => plano(textos.avisoRetencion(...a));
+const detalle = (...a) => plano(textos.detalle(...a));
+const textoRedondeo = (...a) => plano(textos.textoRedondeo(...a));
+const noIncluye = () => plano(textos.noIncluye());
+const resultado = (...a) => plano(textos.resultado(...a));
 
 // Los textos del diseño aprobado (negocio/cuanto-facturo-diseno.md del centro de control), con la
 // decisión del 24 de noviembre de 2026: «Ver el detalle» habla de IRPF.
@@ -110,4 +120,10 @@ test('resultado: con un negocio no hay retención', () => {
   assert.match(aviso, /^Con un negocio/);
   assert.equal(tarjetas[0].filas[0].importe, '121,00 €');
   assert.match(tarjetas[0].detalle, /Con un negocio, no se resta IRPF\.$/);
+});
+
+test('las cifras y su signo no se separan: espacio que no se rompe', () => {
+  assert.match(textos.avisoRetencion({ servicio: true, reciente: false, prefiere15: false }), /15\u00a0%/);
+  assert.match(textos.resultado(RESPUESTAS_INICIALES).tarjetas[0].grande.importe, /^117,65\u00a0€$/);
+  assert.match(textos.noIncluye(), /IRPF del 1\u00a0%/);
 });

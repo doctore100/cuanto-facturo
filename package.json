@@ -1,6 +1,6 @@
 {
   "name": "cuanto-facturo",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Calculadora para autónomos de España: quiero ganar X, ¿qué precio pongo? O al revés: ¿cuánto me queda?",
   "type": "module",
   "private": true,

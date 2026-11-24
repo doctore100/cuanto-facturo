@@ -29,6 +29,6 @@ test('lo que no es un importe da null', () => {
 });
 
 test('euros: sin punto de miles en las cifras de cuatro dígitos, con él desde cinco', () => {
-  assert.equal(euros(1234.5), '1234,50 €');
-  assert.equal(euros(12345.5), '12.345,50 €');
+  assert.equal(euros(1234.5), '1234,50\u00a0€');
+  assert.equal(euros(12345.5), '12.345,50\u00a0€');
 });

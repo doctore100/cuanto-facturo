@@ -116,8 +116,8 @@ export function textoRedondeo(modo, importe, f) {
 export function noIncluye() {
   return '«Para ti» no resta tus gastos, la cuota de autónomos ni lo que pagues en la renta. ' +
     'Tampoco hace facturas: te dice qué precio poner. ' +
-    'No vale tal cual si estás en módulos con transporte o mudanzas (IRPF del 1 %), si eres agricultor ' +
-    'o ganadero (IRPF del 2 %) o si trabajas en Canarias, Ceuta o Melilla, donde no hay IVA. ' +
+    'No vale tal cual si estás en módulos con transporte o mudanzas (IRPF del 1\u00a0%), si eres agricultor ' +
+    'o ganadero (IRPF del 2\u00a0%) o si trabajas en Canarias, Ceuta o Melilla, donde no hay IVA. ' +
     `Es orientativa, con las normas de España de ${EJERCICIO}.`;
 }
 

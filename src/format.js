@@ -1,18 +1,21 @@
 // @ts-check
 const fmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+/** Espacio que no se rompe entre la cifra y su signo: «15 %» y «100,00 €» nunca se parten en dos líneas. */
+export const ESPACIO = '\u00a0';
+
 /**
  * 1234.5 → "1234,50 €"; 12345.5 → "12.345,50 €". En español las cifras de cuatro dígitos no llevan
  * punto de miles, y así lo hace Intl con es-ES.
  * @param {number} n
  */
-export const euros = (n) => `${fmt.format(n)} €`;
+export const euros = (n) => `${fmt.format(n)}${ESPACIO}€`;
 
 /**
  * 0.07 → "7 %"
  * @param {number} t
  */
-export const porcentaje = (t) => `${String(Math.round(t * 1000) / 10).replace('.', ',')} %`;
+export const porcentaje = (t) => `${String(Math.round(t * 1000) / 10).replace('.', ',')}${ESPACIO}%`;
 
 /**
  * 100 → "100,00"
