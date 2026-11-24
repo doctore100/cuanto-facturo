@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>¿Cuánto facturo? · IDRuiz</title>
+  <meta name="description" content="Quieres ganar 100 €: ¿qué precio pones? Calcula IVA e IRPF para empresas, particulares y clientes de fuera, y también al revés.">
+  <meta name="color-scheme" content="dark">
+  <meta name="theme-color" content="#031a38">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="src/fonts/montserrat-latin-variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="src/styles.css">
+  <script type="module" src="src/main.js"></script>
+</head>
+<body>
+<!-- La variante C, aprobada por David el 24 de noviembre de 2026 (negocio/cuanto-facturo-diseno.md del
+     centro de control). Los textos que salen de las reglas (actividades, años del alta, IVA, nombres de
+     los clientes y el año de las normas) los pone src/main.js: así no se escriben dos veces. -->
+<div class="wrap">
+  <header>
+    <h1>¿Cuánto facturo?</h1>
+    <p class="lede">Dinos cuánto quieres ganar y te decimos qué precio poner en tu factura. O al revés: dinos el precio y te decimos cuánto te queda.</p>
+  </header>
+
+  <div class="layout">
+    <form id="preguntas" novalidate>
+      <fieldset class="q">
+        <legend>¿Qué quieres saber?</legend>
+        <label class="opcion"><input type="radio" name="modo" value="ganar" checked><span>Qué precio poner para ganar lo que quiero</span></label>
+        <label class="opcion"><input type="radio" name="modo" value="precio"><span>Cuánto me queda si pongo un precio</span></label>
+        <label class="opcion"><input type="radio" name="modo" value="pago"><span>Cuánto me queda de lo que me van a pagar</span></label>
+      </fieldset>
+
+      <!-- Campo de texto con teclado numérico, no type="number": en España el punto separa los miles,
+           y con type="number" «1.000» era 1 €. Lo lee leerImporte (src/format.js). -->
+      <div class="q">
+        <label for="importe" id="tituloImporte">¿Cuánto quieres ganar?</label>
+        <div class="dinero">
+          <input id="importe" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" value="100" aria-describedby="ayudaImporte">
+          <span aria-hidden="true">€</span>
+        </div>
+        <span class="ayuda" id="ayudaImporte">Lo que quieres que te quede limpio de esa factura.</span>
+      </div>
+
+      <fieldset class="q">
+        <legend>¿A qué te dedicas?</legend>
+        <label class="opcion"><input type="radio" name="actividad" value="profesional" checked><span id="actividadProfesional"></span></label>
+        <label class="opcion"><input type="radio" name="actividad" value="empresarial"><span id="actividadEmpresarial"></span></label>
+      </fieldset>
+
+      <!-- Sin fecha que escribir: dos opciones con el IRPF a la vista. Los años salen de la fecha de hoy. -->
+      <fieldset class="q" id="preguntaAlta" aria-describedby="ayudaAlta">
+        <legend>¿Cuándo te diste de alta de autónomo?</legend>
+        <label class="opcion"><input type="radio" name="alta" value="antes" checked><span class="txt" id="altaAntes"></span><span class="irpf" id="irpfAntes"></span></label>
+        <label class="opcion"><input type="radio" name="alta" value="reciente"><span class="txt" id="altaReciente"></span><span class="irpf" id="irpfReciente"></span></label>
+        <span class="ayuda" id="ayudaAlta">El 7 %, solo si el año antes no trabajabas por tu cuenta.</span>
+      </fieldset>
+
+      <details class="mas">
+        <summary>Más opciones</summary>
+        <div class="q">
+          <label for="iva">¿Qué IVA lleva lo que haces?</label>
+          <select id="iva"></select>
+        </div>
+        <label class="check" id="prefiero15"><input id="casilla15" type="checkbox"> Prefiero que me quiten el 15 % aunque me toque el 7 %</label>
+      </details>
+    </form>
+
+    <section class="resultados" aria-label="Qué poner según a quién le cobres">
+      <p class="aviso" id="aviso" role="status" aria-live="polite"></p>
+      <div class="tarjetas" id="tarjetas"></div>
+
+      <template id="plantillaTarjeta">
+        <article class="tarjeta">
+          <h2></h2>
+          <div class="grande"><span class="k"></span><span class="v"></span></div>
+          <div>
+            <div class="fila"><span></span><b></b></div>
+            <div class="fila"><span></span><b></b></div>
+            <div class="fila"><span></span><b></b></div>
+          </div>
+          <p class="redondeo" hidden></p>
+          <details class="detalle"><summary>Ver el detalle</summary><p></p></details>
+        </article>
+      </template>
+
+      <section class="explica" aria-labelledby="tituloExplica">
+        <h2 id="tituloExplica">Explicaciones</h2>
+
+        <div class="bloque">
+          <h3>Cómo leer cada tarjeta</h3>
+          <dl class="claves">
+            <div><dt>Pon de precio (sin IVA)</dt><dd>Lo que escribes como precio en tu programa de facturación.</dd></div>
+            <div><dt>Tu cliente te pagará</dt><dd>Lo que te llega al banco.</dd></div>
+            <div><dt class="tuyo">Para ti</dt><dd>Lo que te queda de esa factura.</dd></div>
+            <div><dt>Guarda para Hacienda</dt><dd>El IVA (casi siempre, un 21 %). No es tuyo: se lo das a Hacienda cada tres meses.</dd></div>
+          </dl>
+        </div>
+
+        <div class="bloque">
+          <h3>¿Me quitan un 7 % o un 15 %?</h3>
+          <p>Si acabas de empezar como autónomo, puedes aplicar una retención (IRPF) del 7 % durante el año de alta y los dos siguientes, siempre que no hayas ejercido actividad profesional el año anterior. En cualquier otro caso, un 15 %. Debes comunicárselo por escrito a cada cliente antes de facturar.</p>
+        </div>
+
+        <div class="bloque">
+          <h3>¿Doy un servicio o tengo un negocio?</h3>
+          <p>Lo pone en tu alta de autónomo. Si dudas, pregúntale a tu gestoría.</p>
+        </div>
+
+        <div class="bloque">
+          <h3>¿Quién es cada cliente?</h3>
+          <dl class="claves">
+            <div><dt>Empresa o autónomo de España</dt><dd>Te paga para su trabajo. Si das un servicio, se queda una parte para Hacienda.</dd></div>
+            <div><dt>Persona de España</dt><dd>Te paga para algo suyo. No se queda nada.</dd></div>
+            <div><dt>Empresa de otro país de Europa</dt><dd>De un país de la Unión Europea. No lleva IVA, pero tienes que estar apuntado en Hacienda para facturar a Europa.</dd></div>
+            <div><dt>Empresa de fuera de Europa</dt><dd>Estados Unidos, Reino Unido, Suiza… No lleva IVA y no se queda nada.</dd></div>
+          </dl>
+        </div>
+
+        <div class="bloque">
+          <h3>Lo que esta cuenta no incluye</h3>
+          <p>«Para ti» no resta tus gastos, la cuota de autónomos ni lo que pagues en la renta. Tampoco hace facturas: te dice qué precio poner. Es orientativa, con las normas de <span id="ejercicio"></span>.</p>
+        </div>
+      </section>
+    </section>
+  </div>
+</div>
+</body>
+</html>

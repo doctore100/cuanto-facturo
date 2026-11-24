@@ -1,0 +1,21 @@
+{
+  "name": "cuanto-facturo",
+  "version": "0.4.0",
+  "description": "Calculadora para autónomos de España: quiero ganar X, ¿qué precio pongo? O al revés: ¿cuánto me queda?",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./fiscal": "./src/fiscal/index.js",
+    "./format": "./src/format.js"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.js",
+    "dev": "python3 scripts/servir.py 5173",
+    "check": "tsc -p jsconfig.json"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "author": "David Ruiz <david@idruiz.com>",
+  "license": "UNLICENSED"
+}

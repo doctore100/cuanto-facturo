@@ -1,0 +1,168 @@
+/* Estilo de la marca IDRuiz, el mismo que idruiz.com (idruiz-web/src/styles/global.css):
+   fondo azul noche, trazo delgado, Montserrat ligera y turquesa para lo que importa.
+   Tarjetas sin sombra, con borde blanco al 10 % y 12 px de radio (anexo de
+   marca-personal/04-GUIA-IDENTIDAD-VISUAL.md). Sin recursos externos: la fuente va en src/fonts/.
+   La composición es la de la variante C del prototipo, aprobada el 24 de noviembre de 2026. */
+
+/* Montserrat variable (100–900), juego latino: cubre el español, el € y los signos que se usan.
+   Copia de @fontsource-variable/montserrat 5.3.0. Licencia SIL OFL 1.1 en src/fonts/OFL.txt. */
+@font-face {
+  font-family: "Montserrat Variable";
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url("fonts/montserrat-latin-variable.woff2") format("woff2-variations"),
+       url("fonts/montserrat-latin-variable.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308,
+    U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  --noche: #031a38;
+  --turquesa: #21b6d7;
+  --cian: #5fd6e8;
+  --texto: #fff;
+  --texto-suave: rgb(255 255 255 / 0.8);
+  --texto-tenue: rgb(255 255 255 / 0.6);
+  --linea: rgb(255 255 255 / 0.1);
+  --linea-media: rgb(255 255 255 / 0.15);
+  --linea-campo: rgb(255 255 255 / 0.3);
+  --font-sans: "Montserrat Variable", ui-sans-serif, system-ui, sans-serif;
+  color-scheme: dark; /* casillas y barras de desplazamiento en oscuro, como la web */
+}
+
+* { box-sizing: border-box; }
+/* `hidden` tiene que ganar a los display de abajo (las preguntas son grid). */
+[hidden] { display: none !important; }
+html { -webkit-text-size-adjust: 100%; }
+html, body { margin: 0; }
+body {
+  background: var(--noche);
+  color: var(--texto);
+  font: 300 16px/1.6 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: clip;
+}
+/* Foco visible en todo lo que se alcanza con el tabulador (pendiente del diseño: los campos lo quitaban). */
+:focus-visible { outline: 2px solid var(--cian); outline-offset: 3px; }
+::selection { background: rgb(33 182 215 / 0.35); }
+
+.wrap {
+  width: min(1120px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: clamp(48px, 8vw, 96px) 0 120px;
+  display: grid;
+  gap: 40px;
+}
+h1 { margin: 0; font-weight: 200; font-size: clamp(2.2rem, 5vw, 3.2rem); letter-spacing: -0.035em; line-height: 1.08; }
+.lede { margin: 14px 0 0; color: var(--texto-suave); max-width: 52ch; font-size: 1.06rem; text-wrap: pretty; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+  border-top: 1px solid var(--linea);
+  padding-top: 36px;
+}
+@media (max-width: 900px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+/* ── Preguntas ── */
+form { display: grid; gap: 28px; }
+.q { display: grid; gap: 8px; }
+fieldset.q { margin: 0; padding: 0; border: 0; min-width: 0; }
+.q > label, fieldset.q > legend { font-size: 1.02rem; font-weight: 400; }
+fieldset.q > legend { padding: 0; margin-bottom: 8px; }
+.ayuda { font-size: 0.82rem; color: var(--texto-tenue); line-height: 1.5; }
+
+input[type="text"], select {
+  width: 100%;
+  margin: 0;
+  padding: 8px 0;
+  border: 0;
+  border-bottom: 1px solid var(--linea-campo);
+  border-radius: 0;
+  background: transparent;
+  color: var(--texto);
+  font: inherit;
+  font-weight: 400;
+  transition: border-color 0.2s ease;
+}
+input[type="text"]:focus, select:focus { border-bottom-color: var(--turquesa); }
+input[aria-invalid] { border-bottom-color: var(--cian); }
+select {
+  appearance: none;
+  padding-right: 28px;
+  cursor: pointer;
+  /* Flecha de trazo fino, dibujada aquí mismo: nada se carga de fuera. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%23ffffff' stroke-opacity='.6' stroke-width='1.2'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 4px center;
+  text-overflow: ellipsis;
+}
+select option { background: var(--noche); color: var(--texto); }
+
+.dinero { position: relative; }
+.dinero input { font-size: 2.4rem; font-weight: 200; padding-right: 36px; }
+.dinero span { position: absolute; right: 2px; bottom: 14px; font-size: 1.4rem; font-weight: 200; color: var(--texto-tenue); }
+
+/* Opciones que se pulsan enteras (más de 44 px de alto; WCAG 2.2 pide 24). El círculo va a la
+   izquierda y la elegida se marca con el punto y el borde, no solo con el color. */
+.opcion {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--linea-media);
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 0.92rem;
+  color: var(--texto-suave);
+  line-height: 1.45;
+}
+.opcion:has(input:checked) { border-color: var(--turquesa); color: var(--texto); }
+.opcion input { accent-color: var(--turquesa); margin: 3px 0 0; }
+/* Con el tabulador, el contorno va en la opción entera, no en el circulito. */
+.opcion input:focus-visible { outline: none; }
+.opcion:has(input:focus-visible) { outline: 2px solid var(--cian); outline-offset: 2px; }
+.opcion .txt { flex: 1; }
+.opcion .irpf { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--texto-tenue); }
+.opcion:has(input:checked) .irpf { color: var(--turquesa); }
+
+.check { display: flex; gap: 8px; align-items: center; margin-top: 16px; font-size: 0.88rem; color: var(--texto-suave); cursor: pointer; }
+.check input { accent-color: var(--turquesa); margin: 0; }
+details.mas summary { cursor: pointer; color: var(--texto-tenue); font-size: 0.88rem; }
+details.mas[open] summary { margin-bottom: 16px; }
+
+/* ── Resultados ── */
+.resultados { display: grid; gap: 20px; min-width: 0; }
+.aviso { margin: 0; padding: 12px 16px; border: 1px solid var(--linea-media); border-radius: 12px; color: var(--texto-suave); font-size: 0.92rem; }
+
+.tarjetas { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 600px) { .tarjetas { grid-template-columns: minmax(0, 1fr); } }
+.tarjeta { border: 1px solid var(--linea); border-radius: 12px; padding: 22px; display: grid; gap: 14px; align-content: start; }
+.tarjeta h2 { margin: 0; font-weight: 300; font-size: 1.12rem; letter-spacing: -0.01em; }
+.grande .k { display: block; font-size: 0.85rem; color: var(--texto-tenue); }
+.grande .v { display: block; font-weight: 200; font-size: 2.4rem; letter-spacing: -0.02em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.grande.tuyo .v { color: var(--turquesa); }
+.fila { display: flex; justify-content: space-between; gap: 12px; padding: 8px 0; border-top: 1px solid var(--linea); font-size: 0.95rem; color: var(--texto-suave); }
+.fila b { font-weight: 400; color: var(--texto); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fila.tuyo b { color: var(--turquesa); font-weight: 500; }
+.redondeo { margin: 0; font-size: 0.8rem; color: var(--texto-tenue); line-height: 1.45; }
+details.detalle summary { cursor: pointer; color: var(--turquesa); font-size: 0.88rem; }
+details.detalle p { margin: 8px 0 0; font-size: 0.86rem; color: var(--texto-suave); line-height: 1.55; }
+
+/* ── Explicaciones ── */
+.explica { display: grid; gap: 34px; border-top: 1px solid var(--linea); padding-top: 28px; font-size: 0.92rem; color: var(--texto-suave); line-height: 1.6; }
+.explica h2 { margin: 0; font-weight: 200; font-size: 1.7rem; letter-spacing: -0.02em; color: var(--texto); }
+.explica h3 { margin: 0; font-weight: 400; font-size: 1.05rem; color: var(--texto); }
+.explica p { margin: 0; }
+.bloque { display: grid; gap: 10px; max-width: 74ch; }
+.claves { margin: 0; }
+.claves > div { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 4px 20px; padding: 12px 0; border-top: 1px solid var(--linea); }
+.claves > div:last-child { border-bottom: 1px solid var(--linea); }
+.claves dt { color: var(--texto); font-weight: 400; }
+.claves dt.tuyo { color: var(--turquesa); font-weight: 500; }
+.claves dd { margin: 0; }
+@media (max-width: 600px) { .claves > div { grid-template-columns: minmax(0, 1fr); } }

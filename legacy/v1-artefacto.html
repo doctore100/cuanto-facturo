@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>¿Cuánto facturo?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Layout: inputs a la izquierda, cuatro facturas (una por tipo de cliente) a la derecha */
+  --bg: #eef0ec;
+  --surface: #ffffff;
+  --ink: #17202a;
+  --muted: #5b6570;
+  --line: #d6dad3;
+  --accent: #1d6b57;
+  --accent-soft: #e2efe9;
+  --tax: #a9541d;
+  --tax-soft: #f6e9de;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", Roboto, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12171c;
+    --surface: #1a2128;
+    --ink: #e6ebe7;
+    --muted: #97a19b;
+    --line: #2c353d;
+    --accent: #5cc3a3;
+    --accent-soft: #1d3530;
+    --tax: #e39a62;
+    --tax-soft: #3a2a1f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12171c;
+  --surface: #1a2128;
+  --ink: #e6ebe7;
+  --muted: #97a19b;
+  --line: #2c353d;
+  --accent: #5cc3a3;
+  --accent-soft: #1d3530;
+  --tax: #e39a62;
+  --tax-soft: #3a2a1f;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 28px 20px 48px;
+  display: grid;
+  gap: 24px;
+}
+header { display: grid; gap: 6px; }
+h1 {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(28px, 4vw, 40px);
+  line-height: 1.1;
+  margin: 0;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+.lede { color: var(--muted); margin: 0; max-width: 62ch; }
+
+.layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  display: grid;
+  gap: 18px;
+}
+.field { display: grid; gap: 6px; }
+label, .label {
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+}
+.hint { font-size: 12.5px; color: var(--muted); }
+input[type="number"], input[type="date"], select {
+  width: 100%;
+  font: inherit;
+  color: var(--ink);
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+}
+.money-input { position: relative; }
+.money-input input {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 600;
+  padding-right: 40px;
+  font-variant-numeric: tabular-nums;
+}
+.money-input span {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  font-family: var(--font-mono); font-size: 22px; color: var(--muted);
+}
+input:focus-visible, select:focus-visible, button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; }
+.check input { margin-top: 3px; accent-color: var(--accent); }
+
+.status {
+  display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center;
+  padding: 12px 14px;
+  background: var(--accent-soft);
+  border-radius: 10px;
+  font-size: 14px;
+}
+.pill {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--surface);
+  border-radius: 999px;
+  padding: 2px 10px;
+  font-size: 13px;
+}
+.formula { font-family: var(--font-mono); font-size: 13.5px; }
+
+.results { display: grid; gap: 16px; }
+.cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+@media (max-width: 560px) { .cards { grid-template-columns: 1fr; } }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 18px;
+  display: grid;
+  gap: 12px;
+  align-content: start;
+}
+.card-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.card h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16.5px;
+  margin: 0;
+  line-height: 1.25;
+}
+.card .who { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.tag {
+  white-space: nowrap;
+  font-size: 11.5px;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 2px 8px;
+  color: var(--muted);
+}
+.total {
+  display: grid; gap: 2px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bg);
+}
+.total .k { font-size: 12.5px; color: var(--muted); }
+.total .v {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+td { padding: 5px 0; border-bottom: 1px dashed var(--line); }
+td:last-child { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+tr.sum td { border-bottom: none; font-weight: 600; padding-top: 8px; }
+.neg { color: var(--tax); }
+.note { font-size: 12.5px; color: var(--muted); margin: 0; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.chip {
+  border-radius: 10px; padding: 8px 10px; display: grid; gap: 1px;
+}
+.chip .k { font-size: 11.5px; font-weight: 600; }
+.chip .v { font-family: var(--font-mono); font-weight: 600; font-size: 16px; font-variant-numeric: tabular-nums; }
+.chip.keep { background: var(--accent-soft); color: var(--accent); }
+.chip.aside { background: var(--tax-soft); color: var(--tax); }
+.copy {
+  justify-self: start;
+  font: inherit; font-size: 13px; font-weight: 600;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+.copy:hover { border-color: var(--accent); }
+
+.footnotes {
+  font-size: 13px; color: var(--muted);
+  display: grid; gap: 6px;
+  max-width: 80ch;
+}
+.footnotes p { margin: 0; }
+.footnotes strong { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>¿Cuánto facturo?</h1>
+    <p class="lede">Escribe lo que quieres que te quede en el bolsillo. La calculadora te da la factura que tienes que emitir según a quién le cobres, contando IVA y retención de IRPF.</p>
+  </header>
+
+  <div class="layout">
+    <form class="panel" id="form" novalidate>
+      <div class="field">
+        <label for="neto">Quiero que me queden</label>
+        <div class="money-input">
+          <input id="neto" type="number" inputmode="decimal" min="0" step="0.01" value="100">
+          <span>€</span>
+        </div>
+        <span class="hint">Después de apartar el IVA y descontar la retención. Sin gastos ni cuota de autónomos.</span>
+      </div>
+
+      <div class="field">
+        <label for="seccion">Tu actividad según el IAE</label>
+        <select id="seccion">
+          <option value="prof">Profesional: sección 2ª o 3ª (ej. 763 programadores)</option>
+          <option value="emp">Empresarial: sección 1ª (ej. 845, tiendas, hostelería)</option>
+        </select>
+        <span class="hint">Lo ves en tu modelo 036/037 o en el justificante de alta. Solo los profesionales llevan retención.</span>
+      </div>
+
+      <div class="field" id="altaField">
+        <label for="alta">Fecha de alta como autónomo</label>
+        <input id="alta" type="date">
+        <span class="hint">Decide si te toca la retención reducida del 7 % (año de alta y los dos siguientes) o la del 15 %.</span>
+      </div>
+
+      <div class="field" id="factField">
+        <label for="fecha">Fecha de la factura</label>
+        <input id="fecha" type="date">
+      </div>
+
+      <label class="check" id="optField" for="force15">
+        <input id="force15" type="checkbox">
+        <span>Prefiero aplicar el 15 % aunque pueda usar el 7 %</span>
+      </label>
+
+      <div class="field">
+        <label for="iva">Tipo de IVA del servicio</label>
+        <select id="iva">
+          <option value="0.21">21 % (general)</option>
+          <option value="0.10">10 % (reducido)</option>
+          <option value="0.04">4 % (superreducido)</option>
+          <option value="0">Exento (formación reglada, sanidad…)</option>
+        </select>
+      </div>
+    </form>
+
+    <section class="results" aria-live="polite">
+      <div class="status" id="status"></div>
+      <div class="cards" id="cards"></div>
+      <div class="footnotes">
+        <p><strong>La retención no es dinero perdido.</strong> El cliente la ingresa en Hacienda a tu nombre y en la renta se resta del IRPF que te toque. Si te retuvieron de más, te lo devuelven.</p>
+        <p><strong>Lo que queda fuera.</strong> Gastos, cuota de autónomos e IRPF final. Esto calcula el dinero que te entra limpio de IVA y retención, no tu beneficio real.</p>
+        <p><strong>El 7 % tiene requisitos.</strong> No haber ejercido una actividad profesional el año anterior al alta, y comunicárselo por escrito al cliente. Es opcional.</p>
+        <p>Cálculo orientativo con la normativa de 2026. No sustituye a tu asesoría.</p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var fmt = new Intl.NumberFormat("es-ES", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  var eur = function (n) { return fmt.format(n) + " €"; };
+  var pct = function (r) { return String(Math.round(r * 1000) / 10).replace(".", ",") + " %"; };
+  var r2 = function (n) { return Math.round((n + Number.EPSILON) * 100) / 100; };
+
+  var STORE = "cuanto-facturo-v1";
+  var fields = ["neto", "seccion", "alta", "fecha", "iva", "force15"];
+
+  function today() {
+    var d = new Date();
+    var m = String(d.getMonth() + 1).padStart(2, "0");
+    var day = String(d.getDate()).padStart(2, "0");
+    return d.getFullYear() + "-" + m + "-" + day;
+  }
+
+  function load() {
+    $("fecha").value = today();
+    try {
+      var s = JSON.parse(localStorage.getItem(STORE) || "null");
+      if (s) {
+        fields.forEach(function (f) {
+          if (s[f] === undefined || f === "fecha") return;
+          if (f === "force15") $(f).checked = !!s[f]; else $(f).value = s[f];
+        });
+      }
+    } catch (e) {}
+  }
+  function save() {
+    try {
+      var s = {};
+      fields.forEach(function (f) { s[f] = f === "force15" ? $(f).checked : $(f).value; });
+      localStorage.setItem(STORE, JSON.stringify(s));
+    } catch (e) {}
+  }
+
+  // Tipo de retención para clientes empresa/autónomo en España
+  function retencion() {
+    if ($("seccion").value !== "prof") return { rate: 0, why: "Actividad empresarial: tus facturas no llevan retención." };
+    var alta = $("alta").value, fecha = $("fecha").value || today();
+    var fy = parseInt(fecha.slice(0, 4), 10);
+    if (!alta) return { rate: 0.15, why: "Sin fecha de alta: se aplica el 15 % general." };
+    var ay = parseInt(alta.slice(0, 4), 10);
+    var limite = ay + 2;
+    if (fy <= limite && fy >= ay) {
+      if ($("force15").checked) return { rate: 0.15, why: "Puedes aplicar el 7 % hasta el 31/12/" + limite + ", pero has elegido el 15 %." };
+      return { rate: 0.07, why: "Nuevo autónomo: 7 % hasta el 31/12/" + limite + ". Desde " + (limite + 1) + ", 15 %." };
+    }
+    return { rate: 0.15, why: "Han pasado más de dos años desde el año de alta: 15 % general." };
+  }
+
+  // Base mínima para que base − retención = neto
+  function baseFor(neto, r) {
+    var base = r2(neto / (1 - r));
+    var guard = 0;
+    while (r2(base - r2(base * r)) < neto && guard < 5) { base = r2(base + 0.01); guard++; }
+    return base;
+  }
+
+  var CASES = [
+    { id: "es-b2b", title: "Empresa o autónomo en España", who: "Cliente con NIF español que factura su actividad", tag: "IVA + retención", iva: true, ret: true },
+    { id: "es-b2c", title: "Particular en España", who: "Persona sin actividad económica", tag: "IVA", iva: true, ret: false },
+    { id: "ue-b2b", title: "Empresa de la UE", who: "NIF-IVA válido en el VIES. Necesitas el ROI", tag: "Sin IVA", iva: false, ret: false, note: "Mención en la factura: «Inversión del sujeto pasivo». Va en el modelo 349 y en el 303." },
+    { id: "no-ue", title: "Empresa fuera de la UE", who: "Cliente empresarial con sede fuera de la UE", tag: "Sin IVA", iva: false, ret: false, note: "Operación no sujeta a IVA español. Indícalo en la factura." }
+  ];
+
+  function render() {
+    var neto = parseFloat(String($("neto").value).replace(",", "."));
+    if (!isFinite(neto) || neto < 0) neto = 0;
+    var ivaRate = parseFloat($("iva").value);
+    var ret = retencion();
+    var isProf = $("seccion").value === "prof";
+
+    $("altaField").style.display = isProf ? "" : "none";
+    $("factField").style.display = isProf ? "" : "none";
+    $("optField").style.display = isProf && ret.rate === 0.07 || (isProf && $("force15").checked) ? "" : "none";
+
+    var factor = String(r2(1 - ret.rate)).replace(".", ",");
+    $("status").innerHTML =
+      '<span class="pill">Retención ' + pct(ret.rate) + '</span>' +
+      '<span>' + ret.why + '</span>' +
+      (ret.rate > 0 ? '<span class="formula">Base = ' + fmt.format(neto) + ' ÷ ' + factor + '</span>' : '');
+
+    var html = "";
+    CASES.forEach(function (c) {
+      var r = c.ret ? ret.rate : 0;
+      var base = baseFor(neto, r);
+      var retAmt = r2(base * r);
+      var ivaAmt = c.iva ? r2(base * ivaRate) : 0;
+      var total = r2(base + ivaAmt - retAmt);
+      var queda = r2(total - ivaAmt);
+      c._calc = { base: base, ivaAmt: ivaAmt, retAmt: retAmt, total: total, queda: queda, r: r };
+
+      var rows =
+        '<tr><td>Base imponible</td><td>' + eur(base) + '</td></tr>' +
+        '<tr><td>IVA ' + (c.iva ? pct(ivaRate) : '') + '</td><td>' + (c.iva ? '+ ' + eur(ivaAmt) : 'No lleva') + '</td></tr>' +
+        '<tr><td>Retención IRPF ' + (r ? pct(r) : '') + '</td><td class="' + (r ? 'neg' : '') + '">' + (r ? '− ' + eur(retAmt) : 'No lleva') + '</td></tr>' +
+        '<tr class="sum"><td>Te ingresa el cliente</td><td>' + eur(total) + '</td></tr>';
+
+      html +=
+        '<article class="card" id="' + c.id + '">' +
+          '<div class="card-head"><div><h2>' + c.title + '</h2><div class="who">' + c.who + '</div></div><span class="tag">' + c.tag + '</span></div>' +
+          '<div class="total"><span class="k">Total de la factura</span><span class="v">' + eur(total) + '</span></div>' +
+          '<table>' + rows + '</table>' +
+          '<div class="split">' +
+            '<div class="chip aside"><span class="k">Aparta para Hacienda</span><span class="v">' + eur(ivaAmt) + '</span></div>' +
+            '<div class="chip keep"><span class="k">Te queda</span><span class="v">' + eur(queda) + '</span></div>' +
+          '</div>' +
+          (c.note ? '<p class="note">' + c.note + '</p>' : '') +
+          '<button type="button" class="copy" data-case="' + c.id + '">Copiar importes</button>' +
+        '</article>';
+    });
+    $("cards").innerHTML = html;
+    save();
+  }
+
+  function copyCase(id, btn) {
+    var c = CASES.filter(function (x) { return x.id === id; })[0];
+    if (!c || !c._calc) return;
+    var k = c._calc;
+    var txt = c.title + "\n" +
+      "Base imponible: " + eur(k.base) + "\n" +
+      "IVA: " + (c.iva ? eur(k.ivaAmt) : "no lleva") + "\n" +
+      "Retención IRPF: " + (k.r ? "−" + eur(k.retAmt) : "no lleva") + "\n" +
+      "Total factura: " + eur(k.total);
+    var done = function () { btn.textContent = "Copiado"; setTimeout(function () { btn.textContent = "Copiar importes"; }, 1500); };
+    try {
+      navigator.clipboard.writeText(txt).then(done, function () { btn.textContent = "No se pudo copiar"; });
+    } catch (e) { btn.textContent = "No se pudo copiar"; }
+  }
+
+  load();
+  $("form").addEventListener("input", render);
+  $("form").addEventListener("change", render);
+  $("form").addEventListener("submit", function (e) { e.preventDefault(); });
+  $("cards").addEventListener("click", function (e) {
+    var b = e.target.closest(".copy");
+    if (b) copyCase(b.getAttribute("data-case"), b);
+  });
+  render();
+})();
+</script>
+</body>
+</html>
