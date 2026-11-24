@@ -33,7 +33,7 @@ test('las opciones del alta salen del año de hoy y de las reglas', () => {
     irpfAntes: 'IRPF 15 %',
     irpfReciente: 'IRPF 7 %',
     ayuda: 'El 7 %, solo si el año antes no trabajabas por tu cuenta.',
-    prefiero15: 'Prefiero que me quiten el 15 % aunque me toque el 7 %',
+    prefiero15: 'Prefiero que me resten el 15 % aunque me toque el 7 %',
   });
   assert.equal(textosAlta('2027-01-01').antes, 'Antes de 2025, o no lo sé');
 });
@@ -47,15 +47,15 @@ test('las opciones del IVA llevan el porcentaje de las reglas', () => {
   ]);
 });
 
-test('el aviso de la retención, en sus cuatro casos', () => {
+test('el aviso de la retención, en sus cuatro casos («restar», no «quitar»)', () => {
   assert.equal(avisoRetencion({ servicio: false, reciente: true, prefiere15: false }),
-    'Con un negocio, en la factura no te quitan nada para Hacienda.');
+    'Con un negocio, en la factura no se resta IRPF.');
   assert.equal(avisoRetencion({ servicio: true, reciente: false, prefiere15: false }),
-    'Las empresas de España te quitan un 15 % de IRPF para Hacienda.');
+    'Una empresa o un autónomo de España te resta un 15 % de IRPF y lo paga a Hacienda por ti.');
   assert.equal(avisoRetencion({ servicio: true, reciente: true, prefiere15: false }),
-    'Las empresas de España te quitan un 7 % de IRPF para Hacienda. Dura el año de tu alta y los dos siguientes; después, un 15 %.');
+    'Una empresa o un autónomo de España te resta un 7 % de IRPF y lo paga a Hacienda por ti. Es el año de tu alta y los dos siguientes; después, un 15 %.');
   assert.equal(avisoRetencion({ servicio: true, reciente: true, prefiere15: true }),
-    'Has elegido que te quiten un 15 % de IRPF aunque te toque el 7 %.');
+    'Has elegido que te resten un 15 % de IRPF aunque te toque el 7 %.');
 });
 
 test('«Ver el detalle» de la empresa de España habla de IRPF', () => {
@@ -94,7 +94,7 @@ test('lo que esta cuenta no incluye: los casos que no cubre y las normas de Espa
 
 test('resultado: al abrir la página, ganar 100 € con el 15 %', () => {
   const { aviso, tarjetas } = resultado(RESPUESTAS_INICIALES);
-  assert.equal(aviso, 'Las empresas de España te quitan un 15 % de IRPF para Hacienda.');
+  assert.equal(aviso, 'Una empresa o un autónomo de España te resta un 15 % de IRPF y lo paga a Hacienda por ti.');
   assert.deepEqual(tarjetas.map((t) => t.titulo),
     ['Empresa o autónomo de España', 'Persona de España', 'Empresa de otro país de Europa', 'Empresa de fuera de Europa']);
   const [empresa] = tarjetas;

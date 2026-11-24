@@ -42,7 +42,7 @@ export function textosAlta(fechaISO) {
     irpfAntes: `IRPF ${general}`,
     irpfReciente: `IRPF ${nuevo}`,
     ayuda: `El ${nuevo}, solo si el año antes no trabajabas por tu cuenta.`,
-    prefiero15: `Prefiero que me quiten el ${general} aunque me toque el ${nuevo}`,
+    prefiero15: `Prefiero que me resten el ${general} aunque me toque el ${nuevo}`,
   };
 }
 
@@ -56,17 +56,20 @@ export function opcionesIva() {
 
 /**
  * El aviso de encima de las tarjetas. En la página lo lee el lector de pantalla cuando cambia.
+ * Dice «restar» y no «quitar» (que sonaba a dinero perdido) y nombra también a los autónomos, que
+ * también lo restan (David, 24 de noviembre de 2026: «la 1»; «hazlo, con la casilla y la
+ * explicación también»).
  * @param {{ servicio: boolean, reciente: boolean, prefiere15: boolean }} d
  */
 export function avisoRetencion({ servicio, reciente, prefiere15 }) {
   const general = porcentaje(RETENCION.general);
   const nuevo = porcentaje(RETENCION.nuevoAutonomo);
-  if (!servicio) return 'Con un negocio, en la factura no te quitan nada para Hacienda.';
-  if (reciente && prefiere15) return `Has elegido que te quiten un ${general} de IRPF aunque te toque el ${nuevo}.`;
-  if (reciente) {
-    return `Las empresas de España te quitan un ${nuevo} de IRPF para Hacienda. Dura el año de tu alta y los dos siguientes; después, un ${general}.`;
-  }
-  return `Las empresas de España te quitan un ${general} de IRPF para Hacienda.`;
+  /** @param {string} tipo */
+  const resta = (tipo) => `Una empresa o un autónomo de España te resta un ${tipo} de IRPF y lo paga a Hacienda por ti.`;
+  if (!servicio) return 'Con un negocio, en la factura no se resta IRPF.';
+  if (reciente && prefiere15) return `Has elegido que te resten un ${general} de IRPF aunque te toque el ${nuevo}.`;
+  if (reciente) return `${resta(nuevo)} Es el año de tu alta y los dos siguientes; después, un ${general}.`;
+  return resta(general);
 }
 
 /** @param {Resultado} f */
@@ -127,7 +130,7 @@ export function noIncluye() {
  * @property {number} importe        Ya leído (leerImporte); 0 si no es un importe
  * @property {boolean} servicio      «Doy un servicio» (actividad profesional)
  * @property {boolean} reciente      Alta en los tres últimos años
- * @property {boolean} prefiere15    La casilla «Prefiero que me quiten el 15 %»
+ * @property {boolean} prefiere15    La casilla «Prefiero que me resten el 15 %»
  * @property {number} tipoIva
  */
 
